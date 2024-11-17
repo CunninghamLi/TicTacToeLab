@@ -1,48 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace TicTacToe
+public enum Player
 {
-    public class Board
+    None,
+    X,
+    O
+}
+
+public class Board
+{
+    private Player[,] grid = new Player[3, 3];
+    public Player CurrentPlayer { get; set; } = Player.X;
+
+    public Board()
     {
-        public enum Player { None, X, O }
-        private Player[,] grid = new Player[3, 3];
-        public Player CurrentPlayer { get; private set; } = Player.X;
-
-        public bool Select(int row, int column)
+        for (int i = 0; i < 3; i++)
         {
-            if (grid[row, column] != Player.None) return false;
+            for (int j = 0; j < 3; j++)
+            {
+                grid[i, j] = Player.None;
+            }
+        }
+    }
 
-            grid[row, column] = CurrentPlayer;
+    public bool Select(int row, int col)
+    {
+        if (grid[row, col] == Player.None)
+        {
+            grid[row, col] = CurrentPlayer;
             CurrentPlayer = (CurrentPlayer == Player.X) ? Player.O : Player.X;
             return true;
         }
+        return false;
+    }
 
-        public Player CheckWin()
+    public Player CheckWin()
+    {
+        for (int i = 0; i < 3; i++)
         {
-            for (int i = 0; i < 3; i++)
-            {
-                if (grid[i, 0] != Player.None && grid[i, 0] == grid[i, 1] && grid[i, 1] == grid[i, 2]) return grid[i, 0];
-                if (grid[0, i] != Player.None && grid[0, i] == grid[1, i] && grid[1, i] == grid[2, i]) return grid[0, i];
-            }
-
-            if (grid[0, 0] != Player.None && grid[0, 0] == grid[1, 1] && grid[1, 1] == grid[2, 2]) return grid[0, 0];
-            if (grid[0, 2] != Player.None && grid[0, 2] == grid[1, 1] && grid[1, 1] == grid[2, 0]) return grid[0, 2];
-
-            return Player.None;
+            if (grid[i, 0] == grid[i, 1] && grid[i, 1] == grid[i, 2] && grid[i, 0] != Player.None)
+                return grid[i, 0];
+            if (grid[0, i] == grid[1, i] && grid[1, i] == grid[2, i] && grid[0, i] != Player.None)
+                return grid[0, i];
         }
 
-        public void ResetBoard()
-        {
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++)
-                    grid[i, j] = Player.None;
+        if (grid[0, 0] == grid[1, 1] && grid[1, 1] == grid[2, 2] && grid[0, 0] != Player.None)
+            return grid[0, 0];
+        if (grid[0, 2] == grid[1, 1] && grid[1, 1] == grid[2, 0] && grid[0, 2] != Player.None)
+            return grid[0, 2];
 
-            CurrentPlayer = Player.X;
-        }
+        return Player.None;
     }
 }
 

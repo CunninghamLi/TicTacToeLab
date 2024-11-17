@@ -7,37 +7,40 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="450">
     <Grid>
-        <!-- Game Grid with Background -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="3*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <Grid Name="StartScreen" Visibility="Visible">
+            <TextBlock Text="Choose X or O" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Margin="0,-100,0,50"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button Name="ChooseX" Content="X" Width="100" Height="50" Click="ChooseX_Click" />
+                <Button Name="ChooseO" Content="O" Width="100" Height="50" Click="ChooseO_Click" Margin="10,0,0,0"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- Background Grid Image -->
-        <Image Source="images/Grid.png" Grid.Row="0" Grid.RowSpan="3" Grid.ColumnSpan="3" Stretch="UniformToFill"/>
+        <Grid Name="GameBoard" Visibility="Collapsed">
+            <Grid Name="GameGrid" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-        <!-- Tic Tac Toe Cells -->
-        <Image Source="images/blank_image.png" Grid.Row="0" Grid.Column="0" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="0,0"/>
-        <Image Source="images/blank_image.png" Grid.Row="0" Grid.Column="1" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="0,1"/>
-        <Image Source="images/blank_image.png" Grid.Row="0" Grid.Column="2" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="0,2"/>
-        <Image Source="images/blank_image.png" Grid.Row="1" Grid.Column="0" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="1,0"/>
-        <Image Source="images/blank_image.png" Grid.Row="1" Grid.Column="1" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="1,1"/>
-        <Image Source="images/blank_image.png" Grid.Row="1" Grid.Column="2" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="1,2"/>
-        <Image Source="images/blank_image.png" Grid.Row="2" Grid.Column="0" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="2,0"/>
-        <Image Source="images/blank_image.png" Grid.Row="2" Grid.Column="1" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="2,1"/>
-        <Image Source="images/blank_image.png" Grid.Row="2" Grid.Column="2" Stretch="Uniform" MouseUp="Image_MouseUp" Tag="2,2"/>
-
-        <!-- Notification Area -->
-        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Vertical" Margin="10">
-            <TextBlock x:Name="GamesPlayedLabel" Text="Games Played: 0 Games Won: 0" FontSize="14" />
-            <TextBlock x:Name="WinRatioLabel" Text="Win Ratio: 0%" FontSize="14" />
-            <TextBlock x:Name="TurnLabel" Text="Turn: Player X" FontSize="14" />
-        </StackPanel>
+                <Image Name="Cell00" Grid.Row="0" Grid.Column="0" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell01" Grid.Row="0" Grid.Column="1" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell02" Grid.Row="0" Grid.Column="2" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell10" Grid.Row="1" Grid.Column="0" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell11" Grid.Row="1" Grid.Column="1" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell12" Grid.Row="1" Grid.Column="2" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell20" Grid.Row="2" Grid.Column="0" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell21" Grid.Row="2" Grid.Column="1" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+                <Image Name="Cell22" Grid.Row="2" Grid.Column="2" Source="Images/blank_image.png" MouseDown="Cell_Click" />
+            </Grid>
+            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="10">
+                <TextBlock Name="TurnText" Text="Turn: Player X" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>
-

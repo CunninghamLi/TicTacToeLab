@@ -1,72 +1,134 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace TicTacToe
 {
     public partial class MainWindow : Window
     {
-        private Board gameBoard = new Board();
+        private int[,] board = new int[3, 3];
+        private bool isPlayerXTurn = true;
+        private int playerSymbol = 1;
 
         public MainWindow()
         {
             InitializeComponent();
-            UpdateTurnLabel();
+        }
+        private void ChooseX_Click(object sender, RoutedEventArgs e)
+        {
+            playerSymbol = 1;
+            StartGame();
         }
 
-        private void Image_MouseUp(object sender, MouseButtonEventArgs e)
+        private void ChooseO_Click(object sender, RoutedEventArgs e)
         {
-            Image clickedImage = sender as Image;
-            if (clickedImage == null) return;
+            playerSymbol = 2;
+            isPlayerXTurn = false;
+            StartGame();
+        }
 
-            string[] position = clickedImage.Tag.ToString().Split(',');
-            int row = int.Parse(position[0]);
-            int column = int.Parse(position[1]);
+        private void StartGame()
+        {
+            StartScreen.Visibility = Visibility.Collapsed;
+            GameBoard.Visibility = Visibility.Visible;
 
-            if (gameBoard.Select(row, column))
+            if (!isPlayerXTurn)
             {
-                clickedImage.Source = new BitmapImage(new Uri(gameBoard.CurrentPlayer == Board.Player.O ? "images/tic-tac-toe_x.png" : "images/tic-tac-toe_o.png", UriKind.Relative));
+                ComputerMove();
+            }
+        }
+        private void Cell_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (!isPlayerXTurn) return;
 
-                var winner = gameBoard.CheckWin();
-                if (winner != Board.Player.None)
+            Image clickedCell = (Image)sender;
+            int row = int.Parse(clickedCell.Name[4].ToString());
+            int col = int.Parse(clickedCell.Name[5].ToString());
+
+            if (board[row, col] == 0)
+            {
+                MakeMove(row, col, playerSymbol);
+                if (CheckWin(playerSymbol))
                 {
-                    MessageBox.Show($"{winner} wins!");
-                    ResetGame();
+                    MessageBox.Show("You win!");
+                    ResetBoard();
+                    return;
                 }
-                else
-                {
-                    UpdateTurnLabel();
-                }
+
+                isPlayerXTurn = false;
+                TurnText.Text = "Turn: Computer";
+
+                ComputerMove();
             }
         }
 
-        private void UpdateTurnLabel()
+        private void ComputerMove()
         {
-            TurnLabel.Text = $"Turn: Player {(gameBoard.CurrentPlayer == Board.Player.X ? "X" : "O")}";
+            Random random = new Random();
+            int row, col;
+
+            do
+            {
+                row = random.Next(3);
+                col = random.Next(3);
+            } while (board[row, col] != 0);
+
+            MakeMove(row, col, playerSymbol == 1 ? 2 : 1);
+
+            if (CheckWin(playerSymbol == 1 ? 2 : 1))
+            {
+                MessageBox.Show("Computer wins!");
+                ResetBoard();
+                return;
+            }
+
+            isPlayerXTurn = true;
+            TurnText.Text = "Turn: Player";
         }
 
-        private void ResetGame()
+        private void MakeMove(int row, int col, int symbol)
         {
-            gameBoard.ResetBoard();
-            foreach (UIElement element in MainGrid.Children)
+            board[row, col] = symbol;
+            string symbolImage = symbol == 1 ? "tic-tac-toe_x.png" : "tic-tac-toe_o.png";
+
+            Image cell = (Image)GameGrid.Children.Cast<UIElement>()
+                .First(c => Grid.GetRow(c) == row && Grid.GetColumn(c) == col);
+
+            cell.Source = new BitmapImage(new Uri($"Images/{symbolImage}", UriKind.Relative));
+        }
+
+        private bool CheckWin(int symbol)
+        {
+            for (int i = 0; i < 3; i++)
             {
-                if (element is Image img)
+                if ((board[i, 0] == symbol && board[i, 1] == symbol && board[i, 2] == symbol) ||
+                    (board[0, i] == symbol && board[1, i] == symbol && board[2, i] == symbol))
+                    return true;
+            }
+
+            return (board[0, 0] == symbol && board[1, 1] == symbol && board[2, 2] == symbol) ||
+                   (board[0, 2] == symbol && board[1, 1] == symbol && board[2, 0] == symbol);
+        }
+
+        private void ResetBoard()
+        {
+            board = new int[3, 3];
+            foreach (UIElement child in GameGrid.Children)
+            {
+                if (child is Image image)
                 {
-                    img.Source = new BitmapImage(new Uri("images/tic-tac-toe_1181538.png", UriKind.Relative));
+                    image.Source = new BitmapImage(new Uri("Images/blank_image.png", UriKind.Relative));
                 }
             }
-            UpdateTurnLabel();
+
+            StartScreen.Visibility = Visibility.Visible;
+            GameBoard.Visibility = Visibility.Collapsed;
+            TurnText.Text = "Turn: Player X";
+            isPlayerXTurn = true;
         }
     }
+
 }
