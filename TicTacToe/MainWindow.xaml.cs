@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,126 +8,143 @@ namespace TicTacToe
 {
     public partial class MainWindow : Window
     {
-        private int[,] board = new int[3, 3];
-        private bool isPlayerXTurn = true;
-        private int playerSymbol = 1;
+        private Board board = new Board();
+        private Player playerSymbol;
+        private Player computerSymbol;
+        private Player currentPlayer;
+        private int gamesPlayed = 0;
+        private int gamesWon = 0;
+        private Random random = new Random();
 
         public MainWindow()
         {
             InitializeComponent();
-        }
-        private void ChooseX_Click(object sender, RoutedEventArgs e)
-        {
-            playerSymbol = 1;
-            StartGame();
+            ShowMainMenu();
         }
 
-        private void ChooseO_Click(object sender, RoutedEventArgs e)
+        private void ShowMainMenu()
         {
-            playerSymbol = 2;
-            isPlayerXTurn = false;
-            StartGame();
+            MainMenuGrid.Visibility = Visibility.Visible;
+            GameGrid.Visibility = Visibility.Collapsed;
         }
 
-        private void StartGame()
+        private void StartGame(Player player)
         {
-            StartScreen.Visibility = Visibility.Collapsed;
-            GameBoard.Visibility = Visibility.Visible;
+            playerSymbol = player;
+            computerSymbol = player == Player.X ? Player.O : Player.X;
+            currentPlayer = Player.X;
+            MainMenuGrid.Visibility = Visibility.Collapsed;
+            GameGrid.Visibility = Visibility.Visible;
+            ResetBoard();
 
-            if (!isPlayerXTurn)
+            if (playerSymbol == Player.O)
             {
                 ComputerMove();
             }
         }
+
+        private void XButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartGame(Player.X);
+        }
+
+        private void OButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartGame(Player.O);
+        }
+
         private void Cell_Click(object sender, MouseButtonEventArgs e)
         {
-            if (!isPlayerXTurn) return;
+            if (currentPlayer != playerSymbol) return;
 
-            Image clickedCell = (Image)sender;
-            int row = int.Parse(clickedCell.Name[4].ToString());
-            int col = int.Parse(clickedCell.Name[5].ToString());
+            var cell = sender as System.Windows.Controls.Image;
+            int row = Grid.GetRow(cell);
+            int col = Grid.GetColumn(cell);
 
-            if (board[row, col] == 0)
+            if (board.Select(row, col, currentPlayer))
             {
-                MakeMove(row, col, playerSymbol);
-                if (CheckWin(playerSymbol))
+                UpdateCellImage(cell, currentPlayer);
+                if (board.CheckWin() == currentPlayer)
                 {
-                    MessageBox.Show("You win!");
+                    MessageBox.Show($"{currentPlayer} wins!");
+                    gamesWon++;
+                    gamesPlayed++;
                     ResetBoard();
-                    return;
                 }
-
-                isPlayerXTurn = false;
-                TurnText.Text = "Turn: Computer";
-
-                ComputerMove();
+                else
+                {
+                    currentPlayer = computerSymbol;
+                    TurnLabel.Content = $"Turn: Player {currentPlayer}";
+                    ComputerMove();
+                }
             }
         }
 
         private void ComputerMove()
         {
-            Random random = new Random();
-            int row, col;
-
-            do
+            bool moveMade = false;
+            while (!moveMade)
             {
-                row = random.Next(3);
-                col = random.Next(3);
-            } while (board[row, col] != 0);
-
-            MakeMove(row, col, playerSymbol == 1 ? 2 : 1);
-
-            if (CheckWin(playerSymbol == 1 ? 2 : 1))
-            {
-                MessageBox.Show("Computer wins!");
-                ResetBoard();
-                return;
+                int row = random.Next(0, 3);
+                int col = random.Next(0, 3);
+                if (board.Select(row, col, computerSymbol))
+                {
+                    var cell = GetCellAt(row, col);
+                    UpdateCellImage(cell, computerSymbol);
+                    moveMade = true;
+                    if (board.CheckWin() == computerSymbol)
+                    {
+                        MessageBox.Show("Computer wins!");
+                        gamesPlayed++;
+                        ResetBoard();
+                    }
+                    else
+                    {
+                        currentPlayer = playerSymbol;
+                        TurnLabel.Content = $"Turn: Player {currentPlayer}";
+                    }
+                }
             }
-
-            isPlayerXTurn = true;
-            TurnText.Text = "Turn: Player";
         }
 
-        private void MakeMove(int row, int col, int symbol)
+        private void UpdateCellImage(System.Windows.Controls.Image cell, Player player)
         {
-            board[row, col] = symbol;
-            string symbolImage = symbol == 1 ? "tic-tac-toe_x.png" : "tic-tac-toe_o.png";
-
-            Image cell = (Image)GameGrid.Children.Cast<UIElement>()
-                .First(c => Grid.GetRow(c) == row && Grid.GetColumn(c) == col);
-
-            cell.Source = new BitmapImage(new Uri($"Images/{symbolImage}", UriKind.Relative));
+            cell.Source = new BitmapImage(new Uri($"Images/tic-tac-toe_{player.ToString().ToLower()}.png", UriKind.Relative));
         }
 
-        private bool CheckWin(int symbol)
+        private System.Windows.Controls.Image GetCellAt(int row, int col)
         {
-            for (int i = 0; i < 3; i++)
+            foreach (var child in GameGrid.Children)
             {
-                if ((board[i, 0] == symbol && board[i, 1] == symbol && board[i, 2] == symbol) ||
-                    (board[0, i] == symbol && board[1, i] == symbol && board[2, i] == symbol))
-                    return true;
+                if (child is System.Windows.Controls.Image img && Grid.GetRow(img) == row && Grid.GetColumn(img) == col)
+                {
+                    return img;
+                }
             }
-
-            return (board[0, 0] == symbol && board[1, 1] == symbol && board[2, 2] == symbol) ||
-                   (board[0, 2] == symbol && board[1, 1] == symbol && board[2, 0] == symbol);
+            return null;
         }
 
         private void ResetBoard()
         {
-            board = new int[3, 3];
-            foreach (UIElement child in GameGrid.Children)
+            board.Reset();
+            currentPlayer = Player.X;
+            TurnLabel.Content = $"Turn: Player {currentPlayer}";
+            GamesPlayedLabel.Content = $"Games Played: {gamesPlayed}";
+            GamesWonLabel.Content = $"Games Won: {gamesWon}";
+            WinRatioLabel.Content = $"Win Ratio: {(gamesPlayed > 0 ? (gamesWon * 100 / gamesPlayed) : 0)}%";
+
+            foreach (var child in GameGrid.Children)
             {
-                if (child is Image image)
+                if (child is System.Windows.Controls.Image img && img.Name.StartsWith("Cell"))
                 {
-                    image.Source = new BitmapImage(new Uri("Images/blank_image.png", UriKind.Relative));
+                    img.Source = new BitmapImage(new Uri("Images/blank_image.png", UriKind.Relative));
                 }
             }
 
-            StartScreen.Visibility = Visibility.Visible;
-            GameBoard.Visibility = Visibility.Collapsed;
-            TurnText.Text = "Turn: Player X";
-            isPlayerXTurn = true;
+            if (playerSymbol == Player.O)
+            {
+                ComputerMove();
+            }
         }
     }
-
 }
